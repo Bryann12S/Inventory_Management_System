@@ -53,6 +53,7 @@ TemporaryDependencyNodeTargetIdentifier=net9.0
 /warnaserror+:NU1605,SYSLIB0011
 
 [sourceFiles]
+Controllers/ProductsController.cs
 Data/AppDbConfig.cs
 Migrations/
  20260515210641_InitialCreate.cs
@@ -66,6 +67,7 @@ obj/Debug/net9.0/
  backend.AssemblyInfo.cs
  backend.GlobalUsings.g.cs
 Program.cs
+Routes/ProductRoutes.cs
 
 [metadataReferences]
 <DOTNET>/packs/Microsoft.AspNetCore.App.Ref/9.0.16/ref/net9.0/

@@ -10,6 +10,6 @@ public class AppDbContext : IdentityDbContext
     {
     }
 
-    public DbSet<Product> products {get; set;}
-    public DbSet<StockMovement> stockMovements {get; set;}
+    public DbSet<Product> Products {get; set;}
+    public DbSet<StockMovement> StockMovements {get; set;}
 }

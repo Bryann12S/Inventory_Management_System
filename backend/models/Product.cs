@@ -7,17 +7,17 @@ namespace backend.Models;
 public class Product
 {
     [Key]
-    public int id {get; set;}
+    public int Id {get; set;}
 
      [Required]
-    public string name {get; set;} = String.Empty;
+    public string Name {get; set;} = String.Empty;
 
     [Required]
     public string SKU {get; set;} = String.Empty;
 
     [Required]
-    public string category {get; set;} = String.Empty;
-    public int QuantyInStock {get; set;}
+    public string Category {get; set;} = String.Empty;
+    public int QuantityInStock {get; set;}
    
     [Column(TypeName = "decimal(18,2)")]
     public decimal UnitPrice {get; set;} 

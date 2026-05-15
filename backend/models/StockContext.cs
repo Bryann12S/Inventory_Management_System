@@ -12,7 +12,7 @@ public enum MovementType
 public class StockMovement
 {
     [Key]
-    public int id {get; set;}
+    public int Id {get; set;}
     
     [Required]
     public int ProductId {get; set;}
@@ -20,7 +20,7 @@ public class StockMovement
     public Product? Product {get; set;} //connect with movement of product
 
     [Required]
-    public MovementType type {get; set;}
+    public MovementType Type {get; set;}
 
     public int Quantity {get; set;}
 
