@@ -1,5 +1,6 @@
 using backend.Data;
 using backend.Models;
+using backend.DTOs;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers;  
@@ -29,26 +30,35 @@ public class ProductsController
     }
 
     //POST: Create Product
-    public static async Task<IResult> CreateProduct(Product product, AppDbContext db)
+    public static async Task<IResult> CreateProduct(CreateProductDto dto, AppDbContext db)
     {
+        var product = new Product
+        {
+            Name = dto.Name,
+            SKU = dto.SKU,
+            Category = dto.Category,
+            QuantityInStock = dto.QuantityStock,
+            UnitPrice = dto.UnitPrice
+        };
+
         db.Products.Add(product);
         await db.SaveChangesAsync();
         return Results.Created($"api/products/{product.Id}", product);
     }
 
     //PUT: Update Preoduct
-    public static async Task<IResult> UpdateProduct (int id, Product inputProduct, AppDbContext db)
+    public static async Task<IResult> UpdateProduct (int id, UpdateProductDto dto, AppDbContext db)
     {
-        if (id != inputProduct.Id) return Results.BadRequest("El ID no coincide.");
+        if (id != dto.Id) return Results.BadRequest("El ID de la ruta no coincide con el cuerpo de la petición.");
 
         var product = await db.Products.FindAsync(id);
         if (product is null) return Results.NotFound();
 
-        product.Name = inputProduct.Name;
-        product.SKU = inputProduct.SKU;
-        product.Category = inputProduct.Category;
-        product.QuantityInStock = inputProduct.QuantityInStock;
-        product.UnitPrice = inputProduct.UnitPrice;
+        product.Name = dto.Name;
+        product.SKU = dto.SKU;
+        product.Category = dto.Category;
+        product.QuantityInStock = dto.QuantityStock;
+        product.UnitPrice = dto.UnitPrice;
 
         await db.SaveChangesAsync();
         return Results.NoContent();

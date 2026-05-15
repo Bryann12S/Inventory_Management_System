@@ -55,6 +55,7 @@ TemporaryDependencyNodeTargetIdentifier=net9.0
 [sourceFiles]
 Controllers/ProductsController.cs
 Data/AppDbConfig.cs
+DTOs/ProductDtos.cs
 Migrations/
  20260515210641_InitialCreate.cs
  20260515210641_InitialCreate.Designer.cs
