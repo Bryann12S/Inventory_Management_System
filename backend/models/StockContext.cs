@@ -25,4 +25,7 @@ public class StockMovement
     public int Quantity {get; set;}
 
     public DateTime TimeStamp {get; set;} = DateTime.UtcNow;
+
+    [StringLength(200)]
+    public string? Reason { get; init; }
 }

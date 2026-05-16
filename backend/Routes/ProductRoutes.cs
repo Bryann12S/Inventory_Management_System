@@ -10,7 +10,7 @@ public static class Productroutes
 
 
         group.MapGet("/", ProductsController.GetProducts);
-        group.MapGet("/{id}", ProductsController.GetProducts);
+        group.MapGet("/{id}", ProductsController.GetProduct);
         group.MapPost("/", ProductsController.CreateProduct);
         group.MapPut("/{id}", ProductsController.UpdateProduct);
         group.MapDelete("/{id}", ProductsController.DeleteProduct);

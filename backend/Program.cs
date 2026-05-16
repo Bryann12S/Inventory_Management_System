@@ -22,7 +22,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-//Register Eoutes of Products
+//RegisterRoutes of Products
 app.MapProductEndPoints();
+//RegisterRoutes of Movements
+app.MapStockMovementEndpoints();
 
 app.Run();
