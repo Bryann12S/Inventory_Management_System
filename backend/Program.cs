@@ -11,6 +11,16 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+//CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("BlazorCors", policy =>
+    {
+        policy.WithOrigins("http://localhost:5279") 
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 //configure DB
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
@@ -88,6 +98,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors("BlazorCors");
 
 //**Enable Middlewares of Security**
 app.UseAuthentication();
