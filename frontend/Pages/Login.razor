@@ -1,0 +1,106 @@
+@page "/login"
+@inject HttpClient Http
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<div class="container mt-5" style="max-width: 400px;">
+    <div class="card shadow">
+        <div class="card-body">
+            <h3 class="card-title text-center mb-4">Iniciar Sesión</h3>
+
+            <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label class="form-label">Correo Electrónico</label>
+                    <InputText @bind-Value="loginModel.Email" class="form-control" placeholder="usuario@correo.com" />
+                    <ValidationMessage For="@(() => loginModel.Email)" class="text-danger small" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Contraseña</label>
+                    <InputText @bind-Value="loginModel.Password" type="password" class="form-control" placeholder="••••••••" />
+                    <ValidationMessage For="@(() => loginModel.Password)" class="text-danger small" />
+                </div>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger small">@errorMessage</div>
+                }
+
+                <button type="submit" class="btn btn-success w-100" disabled="@isSubmitting">
+                    @(isSubmitting ? "Verificando..." : "Ingresar")
+                </button>
+            </EditForm>
+
+            <div class="text-center mt-3">
+                <a href="/register" class="small text-decoration-none">¿No tienes cuenta? Regístrate aquí</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginForm loginModel = new();
+    private string? errorMessage;
+    private bool isSubmitting = false;
+
+    private async Task HandleLogin()
+    {
+        isSubmitting = true;
+        errorMessage = null;
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/auth/login", loginModel);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Leemos la respuesta estructurada del Backend (AuthResponseDto)
+                var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
+
+                if (result != null)
+                {
+                    // 1. Guardar en localStorage (como en JS)
+                    await LocalStorage.SetItemAsync("authToken", result.Token);
+
+                    // 2. Notificar al AuthStateProvider para refrescar el estado global
+                    ((frontend.Security.CustomAuthStateProvider)AuthStateProvider).NotifyUserLoggedIn(result.Token);
+
+                    // 3. Redirigir al inicio del sistema de inventarios
+                    Navigation.NavigateTo("/");
+                }
+            }
+            else
+            {
+                errorMessage = "Credenciales incorrectas o usuario no encontrado.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error al intentar conectar con el servidor: " + ex.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    public class LoginForm
+    {
+        [Required(ErrorMessage = "El correo es obligatorio")]
+        [EmailAddress(ErrorMessage = "Formato de correo inválido")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "La contraseña es obligatoria")]
+        public string Password { get; set; } = string.Empty;
+    }
+
+    public class AuthResponse
+    {
+        public string Token { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public DateTime Expiration { get; set; }
+    }
+}
