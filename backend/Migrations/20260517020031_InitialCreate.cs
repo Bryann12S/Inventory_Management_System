@@ -51,21 +51,21 @@ namespace backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "products",
+                name: "Products",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    name = table.Column<string>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
                     SKU = table.Column<string>(type: "TEXT", nullable: false),
-                    category = table.Column<string>(type: "TEXT", nullable: false),
-                    QuantyInStock = table.Column<int>(type: "INTEGER", nullable: false),
+                    Category = table.Column<string>(type: "TEXT", nullable: false),
+                    QuantityInStock = table.Column<int>(type: "INTEGER", nullable: false),
                     UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_products", x => x.id);
+                    table.PrimaryKey("PK_Products", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -175,24 +175,25 @@ namespace backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "stockMovements",
+                name: "StockMovements",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     ProductId = table.Column<int>(type: "INTEGER", nullable: false),
-                    type = table.Column<int>(type: "INTEGER", nullable: false),
+                    Type = table.Column<int>(type: "INTEGER", nullable: false),
                     Quantity = table.Column<int>(type: "INTEGER", nullable: false),
-                    TimeStamp = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    TimeStamp = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Reason = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_stockMovements", x => x.id);
+                    table.PrimaryKey("PK_StockMovements", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_stockMovements_products_ProductId",
+                        name: "FK_StockMovements_Products_ProductId",
                         column: x => x.ProductId,
-                        principalTable: "products",
-                        principalColumn: "id",
+                        principalTable: "Products",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -234,8 +235,8 @@ namespace backend.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_stockMovements_ProductId",
-                table: "stockMovements",
+                name: "IX_StockMovements_ProductId",
+                table: "StockMovements",
                 column: "ProductId");
         }
 
@@ -258,7 +259,7 @@ namespace backend.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "stockMovements");
+                name: "StockMovements");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -267,7 +268,7 @@ namespace backend.Migrations
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
-                name: "products");
+                name: "Products");
         }
     }
 }
