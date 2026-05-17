@@ -481,4 +481,14 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 
+#tempory files
 *.lscache
+
+
+# SQLite
+*.db
+*.db-shm
+*.db-wal
+
+# VSCode
+.vscode/
