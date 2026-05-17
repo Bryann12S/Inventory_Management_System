@@ -18,6 +18,7 @@ public static class StockMovementsController
         if (!productExists) return Results.NotFound("Producto no encontrado.");
 
         var movements = await db.StockMovements
+            .Include(m => m.Product)
             .Where(m => m.ProductId == productId)
             .OrderByDescending(m => m.TimeStamp)
             .ToListAsync();
