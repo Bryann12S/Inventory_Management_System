@@ -156,7 +156,7 @@
         try
         {
             errorMessage = null;
-            // Cargamos el producto y su historial en paralelo
+            // Charge product
             product = await Http.GetFromJsonAsync<ProductDto>($"api/products/{Id}");
             movements = await Http.GetFromJsonAsync<List<StockMovementDto>>($"api/products/{Id}/movements");
         }
@@ -177,14 +177,14 @@
 
             if (response.IsSuccessStatusCode)
             {
-                // Reiniciar el formulario
+                
                 movementModel = new();
-                // Recargar los datos para ver reflejado el nuevo stock y el nuevo renglón en la tabla
+               
                 await LoadData();
             }
             else
             {
-                // Capturamos el error de negocio (como el de stock insuficiente que programamos en el Backend)
+                
                 var errorContent = await response.Content.ReadAsStringAsync();
                 errorMessage = errorContent.Contains("Stock insuficiente") 
                     ? "Error: No puedes realizar esta salida porque el stock quedaría en negativo." 

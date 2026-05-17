@@ -1,0 +1,126 @@
+@page "/products/new"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@using System.ComponentModel.DataAnnotations
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<div class="container mt-4" style="max-width: 600px;">
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0">Registrar Nuevo Producto</h4>
+        </div>
+        <div class="card-body">
+            <EditForm Model="@productModel" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nombre del Producto</label>
+                    <InputText @bind-Value="productModel.Name" class="form-control" placeholder="Ej. Laptop HP Pro" />
+                    <ValidationMessage For="@(() => productModel.Name)" class="text-danger small" />
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">SKU (Código Único)</label>
+                        <InputText @bind-Value="productModel.SKU" class="form-control" placeholder="Ej. PROD-1234" />
+                        <ValidationMessage For="@(() => productModel.SKU)" class="text-danger small" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Categoría</label>
+                        <InputText @bind-Value="productModel.Category" class="form-control" placeholder="Ej. Tecnología" />
+                        <ValidationMessage For="@(() => productModel.Category)" class="text-danger small" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Precio Unitario ($)</label>
+                        <InputNumber @bind-Value="productModel.UnitPrice" class="form-control" step="0.01" />
+                        <ValidationMessage For="@(() => productModel.UnitPrice)" class="text-danger small" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Stock Inicial</label>
+                        <InputNumber @bind-Value="productModel.QuantityStock" class="form-control" />
+                        <ValidationMessage For="@(() => productModel.QuantityStock)" class="text-danger small" />
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger small">@errorMessage</div>
+                }
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary w-100" disabled="@isSubmitting">
+                        @(isSubmitting ? "Guardando..." : "Guardar Producto")
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary w-100" @onclick="Cancel">
+                        Cancelar
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private NewProductForm productModel = new();
+    private string? errorMessage;
+    private bool isSubmitting = false;
+
+    private async Task HandleSubmit()
+    {
+        isSubmitting = true;
+        errorMessage = null;
+
+        try
+        {
+            // Send data dor POST in API Products
+            var response = await Http.PostAsJsonAsync("api/products", productModel);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                errorMessage = "Error del servidor: " + errorContent;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error de red: " + ex.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void Cancel() => Navigation.NavigateTo("/");
+
+    // Form
+    public class NewProductForm
+    {
+        [Required(ErrorMessage = "El nombre es obligatorio.")]
+        [StringLength(100, ErrorMessage = "El nombre no puede exceder los 100 caracteres.")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "El SKU es obligatorio.")]
+        [StringLength(50, ErrorMessage = "El SKU no puede exceder los 50 caracteres.")]
+        public string SKU { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "La categoría es obligatoria.")]
+        [StringLength(50, ErrorMessage = "La categoría no puede exceder los 50 caracteres.")]
+        public string Category { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "El stock inicial es obligatorio.")]
+        [Range(0, int.MaxValue, ErrorMessage = "El stock no puede ser negativo.")]
+        public int QuantityStock { get; set; } = 0;
+
+        [Required(ErrorMessage = "El precio es obligatorio.")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "El precio debe ser mayor a 0.")]
+        public decimal UnitPrice { get; set; } = 0.00m;
+    }
+}

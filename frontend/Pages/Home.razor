@@ -96,7 +96,7 @@
     {
         try
         {
-            // Construimos la URL dinámica basada en los filtros ingresados
+            // Build URL filters 
             var url = "api/products?";
             if (!string.IsNullOrWhiteSpace(categoryFilter)) url += $"category={categoryFilter}&";
             if (lowStockThreshold.HasValue) url += $"lowStockThreshold={lowStockThreshold.Value}";
@@ -105,7 +105,6 @@
         }
         catch (Exception)
         {
-            // Si el token expira o hay error, el interceptor se encarga o lo manejamos aquí
             products = new List<ProductDto>();
         }
     }

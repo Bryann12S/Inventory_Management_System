@@ -57,18 +57,18 @@
 
             if (response.IsSuccessStatusCode)
             {
-                // Leemos la respuesta estructurada del Backend (AuthResponseDto)
+                //response backend
                 var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
 
                 if (result != null)
                 {
-                    // 1. Guardar en localStorage (como en JS)
+                    
                     await LocalStorage.SetItemAsync("authToken", result.Token);
 
-                    // 2. Notificar al AuthStateProvider para refrescar el estado global
+                    
                     ((frontend.Security.CustomAuthStateProvider)AuthStateProvider).NotifyUserLoggedIn(result.Token);
 
-                    // 3. Redirigir al inicio del sistema de inventarios
+                  
                     Navigation.NavigateTo("/");
                 }
             }

@@ -65,7 +65,7 @@
             {
                 successMessage = "Usuario creado con éxito. Redirigiendo...";
                 StateHasChanged();
-                await Task.Delay(2000); // Esperar 2 segundos para que el usuario vea el mensaje
+                await Task.Delay(2000); 
                 Navigation.NavigateTo("/login");
             }
             else
