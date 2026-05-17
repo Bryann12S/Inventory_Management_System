@@ -1,16 +1,68 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager Navigation
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+    @if (!IsAuthPage)
+    {
+        <div class="sidebar">
+            <NavMenu />
         </div>
+    }
+    
+    <main>
+        @if (!IsAuthPage){
+            <div class="top-row px-4">
+                <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            </div>
+        }
 
-        <article class="content px-4">
+        <div class="content px-4">
             @Body
-        </article>
+        </div>
     </main>
 </div>
+
+@code {
+    private bool IsAuthPage;
+
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += OnLocationChanged;
+        CheckUrl();
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        CheckUrl();
+        StateHasChanged();
+    }
+
+    private void CheckUrl()
+    {
+        var relativePath = Navigation.ToBaseRelativePath(Navigation.Uri).ToLower();
+
+    
+    if (relativePath.StartsWith("login") || relativePath.StartsWith("register"))
+    {
+        IsAuthPage = true;
+        return;
+    }
+
+    
+    var validRoutes = new[] { 
+        "",              // Tu Home (raíz)
+        "counter",       // Ejemplo
+        "fetchdata",     // Ejemplo
+        "products",      // Ejemplo de tu módulo de inventario
+        "movements"      // Ejemplo de tus movimientos de stock
+    };
+
+    bool isPageValid = validRoutes.Any(route => relativePath == route || relativePath.StartsWith(route + "/"));
+
+    IsAuthPage = !isPageValid;
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+}

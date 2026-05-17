@@ -1,8 +1,10 @@
 @page "/products/new"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @using System.ComponentModel.DataAnnotations
+@using System.Net.Http.Headers
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 
 <div class="container mt-4" style="max-width: 600px;">
     <div class="card shadow-sm">
@@ -75,12 +77,20 @@
 
         try
         {
-            // Send data dor POST in API Products
+    
+            var token = await LocalStorage.GetItemAsync<string>("authToken");
+
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             var response = await Http.PostAsJsonAsync("api/products", productModel);
 
             if (response.IsSuccessStatusCode)
             {
                 Navigation.NavigateTo("/");
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                errorMessage = "Sesión expirada o no autorizada. Intenta iniciar sesión nuevamente.";
             }
             else
             {
@@ -94,6 +104,8 @@
         }
         finally
         {
+            
+            Http.DefaultRequestHeaders.Authorization = null;
             isSubmitting = false;
         }
     }
