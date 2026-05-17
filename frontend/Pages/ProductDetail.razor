@@ -1,0 +1,219 @@
+@page "/products/{Id:int}"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@using frontend.Models
+@using System.ComponentModel.DataAnnotations
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<div class="container mt-4">
+    <div class="mb-3">
+        <button class="btn btn-sm btn-outline-secondary" @onclick="GoBack">
+            <i class="bi bi-arrow-left"></i> Volver al Inventario
+        </button>
+    </div>
+
+    @if (product == null)
+    {
+        <div class="text-center my-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">Cargando detalles del producto...</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Información General</h5>
+                        <span class="badge bg-secondary">SKU: @product.SKU</span>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="text-primary mb-3">@product.Name</h3>
+                        <p class="mb-2"><strong>Categoría:</strong> @product.Category</p>
+                        <p class="mb-2"><strong>Precio Unitario:</strong> $@product.UnitPrice.ToString("N2")</p>
+                        <p class="mb-2">
+                            <strong>Stock Actual:</strong> 
+                            <span class="badge @(product.QuantityInStock < 10 ? "bg-danger" : "bg-success")">
+                                @product.QuantityInStock unidades
+                            </span>
+                        </p>
+                        <p class="text-muted small mt-4">Registrado el: @product.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Registrar Movimiento de Stock</h5>
+                    </div>
+                    <div class="card-body">
+                        <EditForm Model="@movementModel" OnValidSubmit="HandleMovementSubmit">
+                            <DataAnnotationsValidator />
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Tipo de Movimiento</label>
+                                <InputSelect @bind-Value="movementModel.Type" class="form-select">
+                                    <option value="Inbound">Inbound (Entrada / Abastecimiento)</option>
+                                    <option value="Outbound">Outbound (Salida / Venta)</option>
+                                </InputSelect>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Cantidad</label>
+                                <InputNumber @bind-Value="movementModel.Quantity" class="form-control" />
+                                <ValidationMessage For="@(() => movementModel.Quantity)" class="text-danger small" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Razón / Motivo</label>
+                                <InputText @bind-Value="movementModel.Reason" class="form-control" placeholder="Ej. Compra a proveedor, Ajuste..." />
+                                <ValidationMessage For="@(() => movementModel.Reason)" class="text-danger small" />
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(errorMessage))
+                            {
+                                <div class="alert alert-danger small">@errorMessage</div>
+                            }
+
+                            <button type="submit" class="btn btn-success w-100" disabled="@isSubmitting">
+                                @(isSubmitting ? "Procesando..." : "Guardar Movimiento")
+                            </button>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Historial de Movimientos</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        @if (movements == null)
+                        {
+                            <p class="p-3 text-muted">Cargando historial...</p>
+                        }
+                        else if (!movements.Any())
+                        {
+                            <p class="p-3 text-info mb-0">No hay movimientos registrados para este producto todavía.</p>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover mb-0 align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Tipo</th>
+                                            <th class="text-center">Cantidad</th>
+                                            <th>Razón</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var mov in movements)
+                                        {
+                                            <tr>
+                                                <td>@mov.Timestamp.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                                <td>
+                                                    <span class="badge @(mov.Type == MovementType.Inbound ? "bg-success" : "bg-danger")">
+                                                        @(mov.Type == MovementType.Inbound ? "Entrada" : "Salida")
+                                                    </span>
+                                                </td>
+                                                <td class="text-center fw-bold">@mov.Quantity</td>
+                                                <td>@mov.Reason</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private ProductDto? product;
+    private List<StockMovementDto>? movements;
+    
+    private MovementForm movementModel = new();
+    private string? errorMessage;
+    private bool isSubmitting = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            errorMessage = null;
+            // Cargamos el producto y su historial en paralelo
+            product = await Http.GetFromJsonAsync<ProductDto>($"api/products/{Id}");
+            movements = await Http.GetFromJsonAsync<List<StockMovementDto>>($"api/products/{Id}/movements");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error al cargar los datos: " + ex.Message;
+        }
+    }
+
+    private async Task HandleMovementSubmit()
+    {
+        isSubmitting = true;
+        errorMessage = null;
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync($"api/products/{Id}/movements", movementModel);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Reiniciar el formulario
+                movementModel = new();
+                // Recargar los datos para ver reflejado el nuevo stock y el nuevo renglón en la tabla
+                await LoadData();
+            }
+            else
+            {
+                // Capturamos el error de negocio (como el de stock insuficiente que programamos en el Backend)
+                var errorContent = await response.Content.ReadAsStringAsync();
+                errorMessage = errorContent.Contains("Stock insuficiente") 
+                    ? "Error: No puedes realizar esta salida porque el stock quedaría en negativo." 
+                    : "Error al procesar el movimiento.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error de red: " + ex.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void GoBack() => Navigation.NavigateTo("/");
+
+    public class MovementForm
+    {
+        [Required]
+        public string Type { get; set; } = "Inbound";
+
+        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor a 0")]
+        public int Quantity { get; set; } = 1;
+
+        [Required(ErrorMessage = "Debes especificar un motivo")]
+        [StringLength(200, ErrorMessage = "Máximo 200 caracteres")]
+        public string Reason { get; set; } = string.Empty;
+    }
+}
