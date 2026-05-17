@@ -17,7 +17,7 @@ builder.Services.AddTransient<JwtHeaderHandler>();
 
 //configure http Client - url backend
 builder.Services.AddHttpClient("BackendAPI", client => 
-    client.BaseAddress = new Uri("https://localhost:5296/")) 
+    client.BaseAddress = new Uri("http://localhost:5296/")) 
     .AddHttpMessageHandler<JwtHeaderHandler>();
 
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("BackendAPI"));

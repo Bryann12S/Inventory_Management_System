@@ -1,0 +1,97 @@
+@page "/register"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<div class="container mt-5" style="max-width: 400px;">
+    <div class="card shadow">
+        <div class="card-body">
+            <h3 class="card-title text-center mb-4">Crear Cuenta</h3>
+
+            <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label class="form-label">Correo Electrónico</label>
+                    <InputText @bind-Value="registerModel.Email" class="form-control" placeholder="usuario@correo.com" />
+                    <ValidationMessage For="@(() => registerModel.Email)" class="text-danger small" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Contraseña</label>
+                    <InputText @bind-Value="registerModel.Password" type="password" class="form-control" placeholder="••••••••" />
+                    <ValidationMessage For="@(() => registerModel.Password)" class="text-danger small" />
+                </div>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger small">@errorMessage</div>
+                }
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                    <div class="alert alert-success small">@successMessage</div>
+                }
+
+                <button type="submit" class="btn btn-primary w-100" disabled="@isSubmitting">
+                    @(isSubmitting ? "Registrando..." : "Registrarse")
+                </button>
+            </EditForm>
+
+            <div class="text-center mt-3">
+                <a href="/login" class="small text-decoration-none">¿Ya tienes cuenta? Inicia sesión</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    // Definimos un objeto - esquema anonimo
+    private RegisterForm registerModel = new();
+    private string? errorMessage;
+    private string? successMessage;
+    private bool isSubmitting = false;
+
+    private async Task HandleRegister()
+    {
+        isSubmitting = true;
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+            // Petición HTTP POST
+            var response = await Http.PostAsJsonAsync("api/auth/register", registerModel);
+
+            if (response.IsSuccessStatusCode)
+            {
+                successMessage = "Usuario creado con éxito. Redirigiendo...";
+                StateHasChanged();
+                await Task.Delay(2000); // Esperar 2 segundos para que el usuario vea el mensaje
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                var errorData = await response.Content.ReadAsStringAsync();
+                errorMessage = "Error al registrar: " + errorData;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Ocurrió un error de red: " + ex.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    public class RegisterForm
+    {
+        [Required(ErrorMessage = "El correo es obligatorio")]
+        [EmailAddress(ErrorMessage = "Formato de correo inválido")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "La contraseña es obligatoria")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "Mínimo 6 caracteres")]
+        public string Password { get; set; } = string.Empty;
+    }
+}
