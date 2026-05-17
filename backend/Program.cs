@@ -27,7 +27,7 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>{
 //Configure Authentication JWT
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
-var key = Encoding.UTF8.GetBytes(jwtSettings["keys"]!);
+var key = Encoding.UTF8.GetBytes(jwtSettings["key"]!);
 
 builder.Services.AddAuthentication(options =>{
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
