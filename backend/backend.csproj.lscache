@@ -54,10 +54,12 @@ TemporaryDependencyNodeTargetIdentifier=net9.0
 
 [sourceFiles]
 Controllers/
+ AuthController.cs
  ProductsController.cs
  StockMovementsController.cs
 Data/AppDbConfig.cs
 DTOs/
+ AuthDtos.cs
  ProductDtos.cs
  StockMovementDtos.cs
 Migrations/
@@ -73,6 +75,7 @@ obj/Debug/net9.0/
  backend.GlobalUsings.g.cs
 Program.cs
 Routes/
+ AuthRoutes.cs
  ProductRoutes.cs
  StockMovementRoutes.cs
 

@@ -6,7 +6,7 @@ public static class Productroutes
 {
     public static void MapProductEndPoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/products");
+        var group = app.MapGroup("/api/products").RequireAuthorization();
 
 
         group.MapGet("/", ProductsController.GetProducts);
