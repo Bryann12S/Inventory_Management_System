@@ -9,11 +9,6 @@
     }
     
     <main>
-        @if (!IsAuthPage){
-            <div class="top-row px-4">
-                <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-            </div>
-        }
 
         <div class="content px-4">
             @Body
@@ -49,11 +44,11 @@
 
     
     var validRoutes = new[] { 
-        "",              // Tu Home (raíz)
-        "counter",       // Ejemplo
-        "fetchdata",     // Ejemplo
-        "products",      // Ejemplo de tu módulo de inventario
-        "movements"      // Ejemplo de tus movimientos de stock
+        "",             
+        "counter",       
+        "fetchdata",     
+        "products",     
+        "movements"      
     };
 
     bool isPageValid = validRoutes.Any(route => relativePath == route || relativePath.StartsWith(route + "/"));

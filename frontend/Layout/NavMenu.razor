@@ -11,34 +11,46 @@
     </div>
 </div>
 
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="nav flex-column">
-        
+
+<div class="@NavMenuCssClass nav-scrollable d-flex flex-column justify-content-between" style="min-height: calc(100vh - 3.5rem);" @onclick="ToggleNavMenu">
+    
+
+    <nav class="nav flex-column flex-grow-1">
         <AuthorizeView>
             <Authorized>
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                        <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Inventory
+                    <NavLink class="nav-link d-flex align-items-center" href="" Match="NavLinkMatch.All">
+                        <span class="bi bi-box-seam-fill fs-5 me-3 d-inline-flex align-items-center justify-content-center" 
+                            style="width: 2rem; height: 2rem; min-width: 2rem;" 
+                            aria-hidden="true">
+                        </span>
+                        <span>Inventory</span>
                     </NavLink>
                 </div>
-
-                <div class="nav-item px-3 mt-auto">
-                    <button class="nav-link btn btn-link text-start w-100" @onclick="Logout">
-                        <span class="bi bi-box-arrow-right" aria-hidden="true"></span> Cerrar Sesión
-                    </button>
-                </div>
             </Authorized>
-
             <NotAuthorized>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="login">
-                        <span class="bi bi-lock-fill" aria-hidden="true"></span> Iniciar Sesión
+                        <span class="bi bi-lock-fill fs-5 me-2" aria-hidden="true"></span> Iniciar Sesión
                     </NavLink>
                 </div>
             </NotAuthorized>
         </AuthorizeView>
-
     </nav>
+
+  
+    <AuthorizeView>
+        <Authorized>
+            <div class="border-top border-secondary mt-auto py-2">
+                <div class="nav-item px-3">
+                    <button class="nav-link btn btn-link text-start w-100 text-danger border-0 shadow-none px-3" @onclick="Logout">
+                        <span class="bi bi-door-open-fill fs-5 me-2" aria-hidden="true"></span> 
+                        <strong>Cerrar Sesión</strong>
+                    </button>
+                </div>
+            </div>
+        </Authorized>
+    </AuthorizeView>
 </div>
 
 @code {
@@ -66,5 +78,4 @@
 
         Navigation.NavigateTo("/login");
     }
-
 }
