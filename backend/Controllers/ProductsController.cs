@@ -13,13 +13,19 @@ public class ProductsController
     {
         var query = db.Products.AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(category))
-            query = query.Where(p => p.Category.ToLower() == category.ToLower());
+        if (!string.IsNullOrWhiteSpace(category) && category.Trim().ToLower() != "null")
+        {
+            var cleanCategory = category.Trim().ToLower();
+            query = query.Where(p => p.Category.ToLower() == cleanCategory);
+        }
 
-        if (lowStockThreshold.HasValue)
+        if (lowStockThreshold.HasValue && lowStockThreshold.Value > 0)
+        {
             query = query.Where(p => p.QuantityInStock < lowStockThreshold.Value);
+        }
 
-        return Results.Ok(await query.ToListAsync());
+        var result = await query.ToListAsync();
+        return Results.Ok(result);
     }
 
     //GET: Products for ID

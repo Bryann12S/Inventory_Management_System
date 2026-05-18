@@ -17,15 +17,25 @@
         <div class="card-body row g-3">
             <div class="col-md-4">
                 <label class="form-label small fw-bold">Filtrar por Categoría</label>
-                <input type="text" class="form-control" @bind="categoryFilter" placeholder="Ej. Electrónica" />
+                <input type="text" class="form-control" 
+                    @bind="categoryFilter" 
+                    @bind:event="oninput"
+                    @onkeyup="HandleKeyUp"
+                    placeholder="Ej. Electrónica" />
             </div>
             <div class="col-md-4">
                 <label class="form-label small fw-bold">Alerta de Stock Bajo (Menor a:)</label>
-                <input type="number" class="form-control" @bind="lowStockThreshold" placeholder="Ej. 10" />
+                <input type="number" class="form-control" 
+                    @bind="lowStockThreshold" 
+                    placeholder="Ej. 10" />
             </div>
             <div class="col-md-4 d-flex align-items-end gap-2">
-                <button class="btn btn-secondary w-100" @click="LoadProducts">Filtrar</button>
-                <button class="btn btn-outline-secondary w-100" @click="ClearFilters">Limpiar</button>
+                <button class="btn btn-secondary w-100" @onclick="LoadProducts">
+                    <i class="bi bi-filter"></i> Filtrar
+                </button>
+                <button class="btn btn-outline-secondary w-100" @onclick="ClearFilters">
+                    <i class="bi bi-x-circle"></i> Limpiar
+                </button>
             </div>
         </div>
     </div>
@@ -101,9 +111,23 @@
         try
         {
             // Build URL filters 
-            var url = "api/products?";
-            if (!string.IsNullOrWhiteSpace(categoryFilter)) url += $"category={categoryFilter}&";
-            if (lowStockThreshold.HasValue) url += $"lowStockThreshold={lowStockThreshold.Value}";
+            var queryParams = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(categoryFilter))
+            {
+                queryParams.Add($"category={Uri.EscapeDataString(categoryFilter.Trim())}");
+            }
+
+            if (lowStockThreshold.HasValue && lowStockThreshold.Value > 0)
+            {
+                queryParams.Add($"lowStockThreshold={lowStockThreshold.Value}");
+            }
+            
+            var url = "api/products";
+            if (queryParams.Any())
+            {
+                url += "?" + string.Join("&", queryParams);
+            }
 
             products = await Http.GetFromJsonAsync<List<ProductDto>>(url);
         }
@@ -118,6 +142,14 @@
         categoryFilter = null;
         lowStockThreshold = null;
         await LoadProducts();
+    }
+
+    private async Task HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await LoadProducts();
+        }
     }
 
     private void ViewDetails(int id)
