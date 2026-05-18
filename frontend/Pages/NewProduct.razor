@@ -1,4 +1,5 @@
 @page "/products/new"
+@page "/products/edit/{Id:int}"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @using System.ComponentModel.DataAnnotations
 @using System.Net.Http.Headers
@@ -9,7 +10,7 @@
 <div class="container mt-4" style="max-width: 600px;">
     <div class="card shadow-sm">
         <div class="card-header bg-dark text-white">
-            <h4 class="mb-0">Registrar Nuevo Producto</h4>
+            <h4 class="mb-0">@(Id.HasValue ? "Editar Producto" : "Registrar Nuevo Producto")</h4>
         </div>
         <div class="card-body">
             <EditForm Model="@productModel" OnValidSubmit="HandleSubmit">
@@ -24,7 +25,7 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label fw-bold">SKU (Código Único)</label>
-                        <InputText @bind-Value="productModel.SKU" class="form-control" placeholder="Ej. PROD-1234" />
+                        <InputText @bind-Value="productModel.SKU" class="form-control" placeholder="Ej. PROD-1234" disabled="@Id.HasValue" />
                         <ValidationMessage For="@(() => productModel.SKU)" class="text-danger small" />
                     </div>
                     <div class="col-md-6 mb-3">
@@ -66,9 +67,53 @@
 </div>
 
 @code {
+    [Parameter] public int? Id { get; set; }
+
     private NewProductForm productModel = new();
     private string? errorMessage;
     private bool isSubmitting = false;
+    private bool isLoading = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id.HasValue)
+        {
+            isLoading = true;
+            errorMessage = null;
+            try
+            {
+    
+                var token = await LocalStorage.GetItemAsync<string>("authToken");
+                Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                var product = await Http.GetFromJsonAsync<frontend.Models.ProductDto>($"api/products/{Id.Value}");
+                if (product != null)
+                {
+                    productModel = new NewProductForm
+                    {
+                        Name = product.Name,
+                        SKU = product.SKU,
+                        Category = product.Category,
+                        QuantityStock = product.QuantityInStock, 
+                        UnitPrice = product.UnitPrice
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = "Error al cargar el producto: " + ex.Message;
+            }
+            finally
+            {
+                Http.DefaultRequestHeaders.Authorization = null;
+                isLoading = false;
+            }
+        }
+        else
+        {
+            productModel = new NewProductForm();
+        }
+    }
 
     private async Task HandleSubmit()
     {
@@ -77,12 +122,28 @@
 
         try
         {
-    
             var token = await LocalStorage.GetItemAsync<string>("authToken");
-
             Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await Http.PostAsJsonAsync("api/products", productModel);
+            HttpResponseMessage response;
+
+            if (Id.HasValue)
+            {
+                // Mood edit
+                response = await Http.PutAsJsonAsync($"api/products/{Id.Value}", new {
+                    Id = Id.Value,
+                    productModel.Name,
+                    productModel.SKU,
+                    productModel.Category,
+                    productModel.QuantityStock,
+                    productModel.UnitPrice
+                });
+            }
+            else
+            {
+                // Mood create
+                response = await Http.PostAsJsonAsync("api/products", productModel);
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -104,7 +165,6 @@
         }
         finally
         {
-            
             Http.DefaultRequestHeaders.Authorization = null;
             isSubmitting = false;
         }
@@ -112,7 +172,6 @@
 
     private void Cancel() => Navigation.NavigateTo("/");
 
-    // Form
     public class NewProductForm
     {
         [Required(ErrorMessage = "El nombre es obligatorio.")]
